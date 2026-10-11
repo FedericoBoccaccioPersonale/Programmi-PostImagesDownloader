@@ -1,0 +1,142 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+
+  pull_request:
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag da inserire nel nome dello zip (vuoto = tag Git selezionato, altrimenti hash breve del commit)'
+        required: false
+        type: string
+
+  # Qualunque utente GitHub può avviare la build commentando "/build" in una issue.
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: >-
+      github.event_name != 'issue_comment' ||
+      (github.event.issue.pull_request == null && startsWith(github.event.comment.body, '/build'))
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Determina tag e nome dello zip
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG:-}" ]; then
+            GREZZO="$INPUT_TAG"
+          elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            GREZZO="$GITHUB_REF_NAME"
+          else
+            GREZZO="${GITHUB_SHA::7}"
+          fi
+          TAG="${GREZZO//[^A-Za-z0-9._-]/_}"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "NOME=PostImagesDownloader $TAG" >> "$GITHUB_ENV"
+          echo "ARCHIVIO=PostImagesDownloader $TAG.zip" >> "$GITHUB_ENV"
+
+      - name: Individua il progetto
+        run: |
+          set -euo pipefail
+          PROGETTO="$(find . -name 'PostImagesDownloader.vbproj' -print -quit)"
+          if [ -z "$PROGETTO" ]; then
+            echo "::error::PostImagesDownloader.vbproj non trovato nel repository."
+            exit 1
+          fi
+          echo "PROGETTO=$PROGETTO" >> "$GITHUB_ENV"
+
+      - name: Publish Windows x64
+        run: >
+          dotnet publish "$PROGETTO"
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none
+          --output publish
+
+      - name: Elenca la pubblicazione
+        run: ls -la publish
+
+      - name: Prepara il contenuto dello zip
+        run: |
+          set -euo pipefail
+          DEST="dist/$NOME"
+          mkdir -p "$DEST"
+          cp -r publish/. "$DEST/"
+
+          README="$(find . -maxdepth 1 -type f -iname 'readme.md' -print -quit)"
+          if [ -z "$README" ]; then
+            echo "::error::readme.md non trovato nella radice del repository."
+            exit 1
+          fi
+          cp "$README" "$DEST/README.md"
+
+          DOC="$(find . -maxdepth 1 -type d -iname 'doc' -print -quit)"
+          if [ -z "$DOC" ]; then
+            echo "::error::Cartella doc non trovata nella radice del repository."
+            exit 1
+          fi
+          cp -r "$DOC" "$DEST/doc"
+
+          if [ ! -f "$DEST/PostImagesDownloader.exe" ]; then
+            echo "::error::PostImagesDownloader.exe non presente nella pubblicazione."
+            exit 1
+          fi
+
+      - name: Crea lo zip
+        run: |
+          set -euo pipefail
+          (cd dist && zip -r -9 "../$ARCHIVIO" "$NOME")
+          unzip -l "$ARCHIVIO"
+
+      - name: Carica lo zip come artefatto
+        id: carica
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{ env.ARCHIVIO }}
+          archive: false
+          if-no-files-found: error
+
+      - name: Rispondi nella issue con il collegamento
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+          URL_ARTEFATTO: ${{ steps.carica.outputs.artifact-url }}
+          URL_ESECUZIONE: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          COLLEGAMENTO="${URL_ARTEFATTO:-$URL_ESECUZIONE}"
+          gh issue comment "$NUMERO" --body "Build completata: $COLLEGAMENTO (serve un account GitHub per scaricare l'artefatto)."
