@@ -155,3 +155,9 @@ Guida GitHub per la configurazione del .NET SDK nelle Actions: [Build and test .
 3. attendere: il workflow compila l'ultimo commit del ramo principale e risponde nella issue con il collegamento al risultato.
 
 In alternativa puoi creare un fork e avviare il workflow dal tuo fork, dopo aver abilitato le Actions nella sua scheda **Actions**.
+
+## Possibili espansioni
+Il programma è grezzo, ha fatto quello che mi serviva ma può essere rifinito
+
+* Supporto multilingua
+* Aggiunta ulteriori servizi
