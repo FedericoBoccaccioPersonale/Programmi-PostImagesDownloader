@@ -28,8 +28,8 @@ Questo programma esegue quindi localmente il lavoro necessario:
 Il programma **non carica, modifica o elimina** alcun contenuto sui servizi supportati.
 
 ATTENZIONE: in caso di timeout non tutte le immagini vengono scaricate.
-Se un' immagine è già presente non cerca di riscaricarla. Quindi se desideri riscaricare tutta la galleria, rinomina la sua cartella. Il controllo avviene sulle imamgini che la galleria dichiara di avere, non sol nome file, quindi non ci saranno problemi in caso di imamgini con lo stesso nome, nel caso di stesso nome ed estensione la seconda verrà rinominata.
-Tuttavia se il programma viene interrotto con Ctrl+C lo stato di "scaricato" per certe imamgini non viene aggiornato, quindi verranno riscaricate, sovrascrivendo il precedente download.
+Se un' immagine è già presente non cerca di riscaricarla. Quindi se desideri riscaricare tutta la galleria, rinomina la sua cartella. Il controllo avviene sulle immagini che la galleria dichiara di avere, non solo nome file, quindi non ci saranno problemi in caso di immagini con lo stesso nome, nel caso di stesso nome ed estensione la seconda verrà rinominata.
+Tuttavia se il programma viene interrotto con Ctrl+C lo stato di "scaricato" per certe immagini non viene aggiornato, quindi verranno riscaricate, sovrascrivendo il precedente download.
 
 ## Requisiti
 
@@ -39,6 +39,8 @@ Tuttavia se il programma viene interrotto con Ctrl+C lo stato di "scaricato" per
 Non sono richiesti pacchetti NuGet esterni.
 
 ## Utilizzo
+
+Funziona di linea di comando, non ha interfaccia grafica e se lanci l' exe da solo la finestra si chiude immediatamente.
 
 ### Scaricare una singola galleria
 
@@ -114,7 +116,7 @@ Questo permette inoltre di conservare sul disco le immagini già completate anch
 
 ## Compilazione tramite GitHub Actions
 
-Puoi compialre direttamente su online: GitHub compila il programma e produce uno zip pronto all' uso.
+Puoi compilare direttamente su online: GitHub compila il programma e produce uno zip pronto all' uso.
 
 Il workflow `.github/workflows/build.yml`:
 
