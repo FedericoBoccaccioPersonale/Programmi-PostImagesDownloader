@@ -57,6 +57,11 @@ PostImagesDownloader.exe "https://postimg.cc/gallery/4dw5KCx"
 Il programma crea una cartella con il nome della galleria e salva al suo interno tutte le immagini.
 
 ### Scaricare tutte le gallerie pubbliche di un utente
+```
+PostImagesDownloader.exe "https://postimg.cc/user/NOME_UTENTE"
+```
+
+Ad esempio:
 
 ```
 PostImagesDownloader.exe "https://postimg.cc/user/federico-boccacc"
@@ -68,8 +73,8 @@ Il programma analizza la pagina pubblica dell' utente, individua i collegamenti 
 
 ### ImgBB
 ```
-https://ibb.co/album/ID_ALBUM
-https://NOMEUTENTE.imgbb.com/albums
+PostImagesDownloader.exe https://ibb.co/album/ID_ALBUM
+PostImagesDownloader.exe https://NOMEUTENTE.imgbb.com/albums
 ```
 
 ## Formati delle immagini
